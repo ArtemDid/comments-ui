@@ -19,7 +19,10 @@ const Header = () => {
   const [open, setOpen] = React.useState(false);
   const [placement, setPlacement] = React.useState<PopperPlacementType>();
   const [openAuth, setOpenAuth] = React.useState(false);
-  const handleOpen = () => setOpenAuth(true);
+  const handleOpen = () => {
+    setOpenAuth(true);
+    setOpen(false);
+  };
   const handleClose = () => setOpenAuth(false);
   const [name, setName] = useState("Artem");
 
@@ -39,8 +42,7 @@ const Header = () => {
           <Fade {...TransitionProps} timeout={5}>
             <Paper>
               <Typography sx={{ p: 2 }}>
-                The content of the Popper.
-                <Button onClick={handleOpen}>Open modal</Button>
+                <Button onClick={handleOpen}>Login</Button>
               </Typography>
             </Paper>
           </Fade>
@@ -52,11 +54,7 @@ const Header = () => {
       >
         <Avatar sx={{ bgcolor: deepOrange[500] }} alt={name} src="#" />
       </Button>
-      <BasicModal
-        openAuth={openAuth}
-        setOpenAuth={setOpenAuth}
-        setOpen={setOpen}
-      />
+      <BasicModal openAuth={openAuth} setOpenAuth={setOpenAuth} />
     </div>
   );
 };

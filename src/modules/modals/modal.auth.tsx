@@ -1,12 +1,10 @@
 import * as React from "react";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
-import Modal from "@mui/material/Modal";
+import { Modal, Box, Typography, TextField, Button } from "@mui/material";
+import { useStyles } from "./styles";
 
 const style = {
   position: "absolute" as "absolute",
-  top: "20%",
+  top: "30%",
   left: "50%",
   transform: "translate(-50%, -50%)",
   width: 400,
@@ -14,19 +12,63 @@ const style = {
   // border: "2px solid #000",
   boxShadow: 14,
   p: 4,
+  "& .MuiTextField-root": { m: 1, width: "25ch" },
 };
 type Props = {
   openAuth: boolean;
   setOpenAuth: (openAuth: boolean) => void;
-  setOpen: (open: boolean) => void;
 };
 
-export default function BasicModal({ openAuth, setOpenAuth, setOpen }: Props) {
-  // const [open, setOpen] = React.useState(false);
+export default function BasicModal({ openAuth, setOpenAuth }: Props) {
+  const [auth, setAuth] = React.useState(true);
   // const handleOpen = () => setOpen(true);
+  const { classes, cx } = useStyles();
+  const [inputs, setInputs] = React.useState<{
+    user_name: string;
+    email: string;
+    home_page?: string;
+  }>({
+    user_name: "",
+    email: "",
+    home_page: "",
+  });
   const handleClose = () => {
     setOpenAuth(false);
-    setOpen(false);
+  };
+
+  const handleClick = () => {
+    setAuth(!auth);
+  };
+
+  const handleChange = (event: { target: { name: string; value: string } }) => {
+    const name = event.target.name;
+    const value = event.target.value;
+    setInputs((values) => ({ ...values, [name]: value }));
+  };
+
+  const handleSubmit = async (event: { preventDefault: () => void }) => {
+    event.preventDefault();
+    console.log(inputs);
+    if (!inputs.home_page) {
+      delete inputs.home_page;
+    }
+
+    const response = await fetch(
+      (process.env.REACT_APP_API_URL +
+        "/api/users/login?" +
+        new URLSearchParams(inputs)) as string,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await response.json();
+
+    console.log(data);
+
+    setInputs({ user_name: "", email: "", home_page: "" });
   };
 
   return (
@@ -37,13 +79,59 @@ export default function BasicModal({ openAuth, setOpenAuth, setOpen }: Props) {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={style}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Text in a modal
-          </Typography>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+        <Box
+          sx={style}
+          component="form"
+          autoComplete="off"
+          onSubmit={handleSubmit}
+        >
+          {/* <Typography id="modal-modal-description" sx={{ mt: 2 }}>
             Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-          </Typography>
+          </Typography> */}
+
+          <div className={cx(classes.modalContent)}>
+            <Typography
+              id="modal-modal-title"
+              variant="h6"
+              component="h2"
+              alignItems={"center"}
+            >
+              {auth ? "Authorization" : "Registration"}
+            </Typography>
+            <TextField
+              required
+              id="outlined-required"
+              label="Name"
+              onChange={handleChange}
+              name="user_name"
+              value={inputs.user_name}
+            />
+            <TextField
+              required
+              id="outlined-required"
+              label="Email"
+              onChange={handleChange}
+              name="email"
+              value={inputs.email}
+            />
+            {!auth && (
+              <TextField
+                id="outlined-multiline-flexible"
+                label="Home page"
+                multiline
+                maxRows={4}
+                onChange={handleChange}
+                name="home_page"
+                value={inputs.home_page}
+              />
+            )}
+            <Button color="success" size="large" type="submit">
+              Send
+            </Button>
+            <Button variant="text" size="small" onClick={handleClick}>
+              {!auth ? "Authorization" : "Registration"}
+            </Button>
+          </div>
         </Box>
       </Modal>
     </div>

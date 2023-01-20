@@ -1,6 +1,10 @@
 import * as React from "react";
 import { Modal, Box, Typography, TextField, Button } from "@mui/material";
 import { useStyles } from "./styles";
+import toast from "react-hot-toast";
+import { initialState } from "../../libs/constants";
+import { InitialState, Action } from "../../libs/types";
+import { Actions } from "../../libs/enums";
 
 const style = {
   position: "absolute" as "absolute",
@@ -17,11 +21,12 @@ const style = {
 type Props = {
   openAuth: boolean;
   setOpenAuth: (openAuth: boolean) => void;
+  dispatch: any;
 };
 
-export default function BasicModal({ openAuth, setOpenAuth }: Props) {
+export default function BasicModal({ openAuth, setOpenAuth, dispatch }: Props) {
   const [auth, setAuth] = React.useState(true);
-  // const handleOpen = () => setOpen(true);
+  // const [state, dispatch] = React.useReducer(reducer, initialState);
   const { classes, cx } = useStyles();
   const [inputs, setInputs] = React.useState<{
     user_name: string;
@@ -54,9 +59,9 @@ export default function BasicModal({ openAuth, setOpenAuth }: Props) {
     }
 
     const response = await fetch(
-      (process.env.REACT_APP_API_URL +
-        "/api/users/login?" +
-        new URLSearchParams(inputs)) as string,
+      process.env.REACT_APP_API_URL +
+        `/api/users/${auth ? "login" : "registration"}?` +
+        new URLSearchParams(inputs),
       {
         method: "POST",
         headers: {
@@ -66,7 +71,22 @@ export default function BasicModal({ openAuth, setOpenAuth }: Props) {
     );
     const data = await response.json();
 
+    if (!data.status || data.status !== 200) {
+      toast.error(data.message);
+      return;
+    }
+
+    dispatch({
+      type: Actions.setItems,
+      payload: data,
+    });
+
+    localStorage.setItem("token", data.token);
+
+    toast.success("Success!");
+
     console.log(data);
+    handleClose();
 
     setInputs({ user_name: "", email: "", home_page: "" });
   };

@@ -7,11 +7,13 @@ import { useState } from "react";
 import { deepOrange } from "@mui/material/colors";
 import Popper, { PopperPlacementType } from "@mui/material/Popper";
 import BasicModal from "../modules/modals/modal.auth";
-// interface Props {
-//   currencies: Currencies;
-// }
+import { Actions } from "../libs/enums";
+interface Props {
+  dispatch: any;
+  state: any;
+}
 
-const Header = () => {
+const Header = ({ dispatch, state }: Props) => {
   const { classes, cx } = useStyles();
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null
@@ -23,8 +25,13 @@ const Header = () => {
     setOpenAuth(true);
     setOpen(false);
   };
-  const handleClose = () => setOpenAuth(false);
-  const [name, setName] = useState("Artem");
+  const handleClose = () => {
+    dispatch({
+      type: Actions.deleteItems,
+    });
+    localStorage.setItem("token", "");
+  };
+  // const [name, setName] = useState("Artem");
 
   const handleClick =
     (newPlacement: PopperPlacementType) =>
@@ -42,7 +49,11 @@ const Header = () => {
           <Fade {...TransitionProps} timeout={5}>
             <Paper>
               <Typography sx={{ p: 2 }}>
-                <Button onClick={handleOpen}>Login</Button>
+                {!state.name ? (
+                  <Button onClick={handleOpen}>Login</Button>
+                ) : (
+                  <Button onClick={handleClose}>Logout</Button>
+                )}
               </Typography>
             </Paper>
           </Fade>
@@ -52,9 +63,13 @@ const Header = () => {
         className={cx(classes.button)}
         onClick={handleClick("bottom-end")}
       >
-        <Avatar sx={{ bgcolor: deepOrange[500] }} alt={name} src="#" />
+        <Avatar sx={{ bgcolor: deepOrange[500] }} alt={state.name} src="#" />
       </Button>
-      <BasicModal openAuth={openAuth} setOpenAuth={setOpenAuth} />
+      <BasicModal
+        openAuth={openAuth}
+        setOpenAuth={setOpenAuth}
+        dispatch={dispatch}
+      />
     </div>
   );
 };

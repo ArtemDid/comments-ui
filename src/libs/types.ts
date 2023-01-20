@@ -1,6 +1,7 @@
 export interface InitialState {
   name: string;
   email: string;
+  comments: Array<any>;
   isUploaded: boolean;
 }
 

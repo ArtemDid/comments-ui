@@ -22,9 +22,15 @@ type Props = {
   openAuth: boolean;
   setOpenAuth: (openAuth: boolean) => void;
   dispatch: any;
+  temp: any;
 };
 
-export default function BasicModal({ openAuth, setOpenAuth, dispatch }: Props) {
+export default function BasicModal({
+  openAuth,
+  setOpenAuth,
+  dispatch,
+  temp,
+}: Props) {
   const [auth, setAuth] = React.useState(true);
   // const [state, dispatch] = React.useReducer(reducer, initialState);
   const { classes, cx } = useStyles();
@@ -84,6 +90,7 @@ export default function BasicModal({ openAuth, setOpenAuth, dispatch }: Props) {
     localStorage.setItem("token", data.token);
 
     toast.success("Success!");
+    temp();
 
     console.log(data);
     handleClose();

@@ -5,6 +5,7 @@ import { Actions } from "../libs/enums";
 import { Action, InitialState } from "../libs/types";
 import { Button, Comment, Form, Header } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
+import toast from "react-hot-toast";
 // import { initialState } from "../libs/constants";
 // import { Actions } from "../libs/enums";
 // import { parseCurrencies } from "../libs/helper";
@@ -16,14 +17,23 @@ const reducer = (state: InitialState, action: Action) => {
   switch (action.type) {
     case Actions.setItems:
       return {
-        name: action.payload.name,
-        email: action.payload.email,
+        name: action.payload?.name,
+        email: action.payload?.email,
+        comments: state.comments,
         isUploaded: true,
       };
     case Actions.deleteItems:
       return {
         name: "",
         email: "",
+        comments: [],
+        isUploaded: true,
+      };
+    case Actions.setComments:
+      return {
+        name: state.name,
+        email: state.email,
+        comments: action.payload.comments,
         isUploaded: true,
       };
     default:
@@ -34,10 +44,43 @@ const reducer = (state: InitialState, action: Action) => {
 const App = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
 
+  const temp = () => {
+    if (localStorage.getItem("token"))
+      fetch(process.env.REACT_APP_API_URL + `/api/comments/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          console.log(data.comments);
+          dispatch({
+            type: Actions.setComments,
+            payload: data,
+          });
+          dispatch({
+            type: Actions.setItems,
+            payload: data.user,
+          });
+        });
+  };
+
+  useLayoutEffect(() => {
+    // if (state.comments) return;
+    temp();
+  }, []);
+
+  console.log(state.comments);
+
   return (
     <div>
-      <Header1 dispatch={dispatch} state={state} />
+      <Header1 dispatch={dispatch} state={state} temp={temp} />
       <div>{state.email}</div>
+      <div>{JSON.stringify(state.comments)}</div>
       <Comment.Group minimal>
         <Header as="h3" dividing>
           Comments

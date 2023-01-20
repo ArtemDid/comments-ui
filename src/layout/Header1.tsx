@@ -11,9 +11,10 @@ import { Actions } from "../libs/enums";
 interface Props {
   dispatch: any;
   state: any;
+  temp: any;
 }
 
-const Header = ({ dispatch, state }: Props) => {
+const Header = ({ dispatch, state, temp }: Props) => {
   const { classes, cx } = useStyles();
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null
@@ -29,7 +30,7 @@ const Header = ({ dispatch, state }: Props) => {
     dispatch({
       type: Actions.deleteItems,
     });
-    localStorage.setItem("token", "");
+    localStorage.removeItem("token");
   };
   // const [name, setName] = useState("Artem");
 
@@ -49,7 +50,7 @@ const Header = ({ dispatch, state }: Props) => {
           <Fade {...TransitionProps} timeout={5}>
             <Paper>
               <Typography sx={{ p: 2 }}>
-                {!state.name ? (
+                {!state?.name ? (
                   <Button onClick={handleOpen}>Login</Button>
                 ) : (
                   <Button onClick={handleClose}>Logout</Button>
@@ -63,12 +64,13 @@ const Header = ({ dispatch, state }: Props) => {
         className={cx(classes.button)}
         onClick={handleClick("bottom-end")}
       >
-        <Avatar sx={{ bgcolor: deepOrange[500] }} alt={state.name} src="#" />
+        <Avatar sx={{ bgcolor: deepOrange[500] }} alt={state?.name} src="#" />
       </Button>
       <BasicModal
         openAuth={openAuth}
         setOpenAuth={setOpenAuth}
         dispatch={dispatch}
+        temp={temp}
       />
     </div>
   );

@@ -1,11 +1,13 @@
 import React, { useLayoutEffect, useReducer } from "react";
-import Header1 from "../layout/Header1";
+import Header from "../layout/Header";
 import { initialState } from "../libs/constants";
 import { Actions } from "../libs/enums";
 import { Action, InitialState } from "../libs/types";
-import { Button, Comment, Form, Header } from "semantic-ui-react";
-import "semantic-ui-css/semantic.min.css";
 import toast from "react-hot-toast";
+import CommentsContainer from "../modules/comments/CommentsContainer";
+import { Button, TablePagination } from "@mui/material";
+import CommentModal from "../modules/modals/modal.comments";
+
 // import { initialState } from "../libs/constants";
 // import { Actions } from "../libs/enums";
 // import { parseCurrencies } from "../libs/helper";
@@ -20,6 +22,7 @@ const reducer = (state: InitialState, action: Action) => {
         name: action.payload?.name,
         email: action.payload?.email,
         comments: state.comments,
+        total_count: state.total_count,
         isUploaded: true,
       };
     case Actions.deleteItems:
@@ -27,6 +30,7 @@ const reducer = (state: InitialState, action: Action) => {
         name: "",
         email: "",
         comments: [],
+        total_count: state.total_count,
         isUploaded: true,
       };
     case Actions.setComments:
@@ -34,6 +38,7 @@ const reducer = (state: InitialState, action: Action) => {
         name: state.name,
         email: state.email,
         comments: action.payload.comments,
+        total_count: action.payload.total_count,
         isUploaded: true,
       };
     default:
@@ -43,16 +48,34 @@ const reducer = (state: InitialState, action: Action) => {
 
 const App = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  const [open, setOpen] = React.useState(false);
+  const [id, setId] = React.useState(null);
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const handleChangePage = (
+    event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
+    setPage(newPage);
+  };
 
   const temp = () => {
     if (localStorage.getItem("token"))
-      fetch(process.env.REACT_APP_API_URL + `/api/comments/`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
+      fetch(
+        process.env.REACT_APP_API_URL +
+          `/api/comments?` +
+          new URLSearchParams({
+            limit: rowsPerPage.toString(),
+            offset: (page * rowsPerPage).toString(),
+          }),
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
         .then((response) => {
           return response.json();
         })
@@ -72,103 +95,53 @@ const App = () => {
   useLayoutEffect(() => {
     // if (state.comments) return;
     temp();
-  }, []);
+  }, [rowsPerPage, page]);
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+  const handleOpen = () => {
+    setOpen(true);
+    setId(null);
+  };
+  const handleClose = () => setOpen(false);
 
   console.log(state.comments);
 
   return (
     <div>
-      <Header1 dispatch={dispatch} state={state} temp={temp} />
-      <div>{state.email}</div>
-      <div>{JSON.stringify(state.comments)}</div>
-      <Comment.Group minimal>
-        <Header as="h3" dividing>
-          Comments
-        </Header>
-
-        <Comment>
-          <Comment.Avatar
-            as="a"
-            src="https://react.semantic-ui.com/images/avatar/small/matt.jpg"
+      <Header dispatch={dispatch} state={state} temp={temp} />
+      <h1>Comments</h1>
+      {state.isUploaded && (
+        <>
+          {state.name && <Button onClick={handleOpen}>Add Commment</Button>}
+          <CommentsContainer
+            comments={state.comments}
+            setOpen={setOpen}
+            setId={setId}
           />
-          <Comment.Content>
-            <Comment.Author as="a">Matt</Comment.Author>
-            <Comment.Metadata>
-              <span>Today at 5:42PM</span>
-            </Comment.Metadata>
-            <Comment.Text>How artistic!</Comment.Text>
-            <Comment.Actions>
-              <a>Reply</a>
-            </Comment.Actions>
-          </Comment.Content>
-        </Comment>
-
-        <Comment>
-          <Comment.Avatar
-            as="a"
-            src="https://react.semantic-ui.com/images/avatar/small/elliot.jpg"
+          <CommentModal
+            id={id}
+            openAuth={open}
+            setOpenAuth={setOpen}
+            dispatch={dispatch}
+            // temp={temp}
           />
-          <Comment.Content>
-            <Comment.Author as="a">Elliot Fu</Comment.Author>
-            <Comment.Metadata>
-              <span>Yesterday at 12:30AM</span>
-            </Comment.Metadata>
-            <Comment.Text>
-              <p>This has been very useful for my research. Thanks as well!</p>
-            </Comment.Text>
-            <Comment.Actions>
-              <a>Reply</a>
-            </Comment.Actions>
-          </Comment.Content>
-
-          <Comment.Group>
-            <Comment>
-              <Comment.Avatar
-                as="a"
-                src="https://react.semantic-ui.com/images/avatar/small/jenny.jpg"
-              />
-              <Comment.Content>
-                <Comment.Author as="a">Jenny Hess</Comment.Author>
-                <Comment.Metadata>
-                  <span>Just now</span>
-                </Comment.Metadata>
-                <Comment.Text>Elliot you are always so right :)</Comment.Text>
-                <Comment.Actions>
-                  <a>Reply</a>
-                </Comment.Actions>
-              </Comment.Content>
-            </Comment>
-          </Comment.Group>
-        </Comment>
-
-        <Comment>
-          <Comment.Avatar
-            as="a"
-            src="https://react.semantic-ui.com/images/avatar/small/joe.jpg"
-          />
-          <Comment.Content>
-            <Comment.Author as="a">Joe Henderson</Comment.Author>
-            <Comment.Metadata>
-              <span>5 days ago</span>
-            </Comment.Metadata>
-            <Comment.Text>Dude, this is awesome. Thanks so much</Comment.Text>
-            <Comment.Actions>
-              <a>Reply</a>
-            </Comment.Actions>
-          </Comment.Content>
-        </Comment>
-
-        <Form reply>
-          <Form.TextArea />
-          <Button
-            content="Add Reply"
-            labelPosition="left"
-            icon="edit"
-            primary
-          />
-        </Form>
-      </Comment.Group>
-      {/* {state.isUploaded && <CurrencyConverter currencies={state.currencies} />} */}
+          {state.name && (
+            <TablePagination
+              component="div"
+              count={state.total_count}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };

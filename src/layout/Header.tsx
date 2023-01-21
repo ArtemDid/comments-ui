@@ -6,7 +6,7 @@ import { Avatar, Button, Fade, Paper, Typography } from "@mui/material";
 import { useState } from "react";
 import { deepOrange } from "@mui/material/colors";
 import Popper, { PopperPlacementType } from "@mui/material/Popper";
-import BasicModal from "../modules/modals/modal.auth";
+import AuthModal from "../modules/modals/modal.auth";
 import { Actions } from "../libs/enums";
 interface Props {
   dispatch: any;
@@ -66,7 +66,7 @@ const Header = ({ dispatch, state, temp }: Props) => {
       >
         <Avatar sx={{ bgcolor: deepOrange[500] }} alt={state?.name} src="#" />
       </Button>
-      <BasicModal
+      <AuthModal
         openAuth={openAuth}
         setOpenAuth={setOpenAuth}
         dispatch={dispatch}

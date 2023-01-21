@@ -5,4 +5,5 @@ export const initialState: InitialState = {
   email: "",
   comments: [],
   isUploaded: false,
+  total_count: "",
 };

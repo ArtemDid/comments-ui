@@ -6,6 +6,7 @@ import { initialState } from "../../libs/constants";
 import { InitialState, Action } from "../../libs/types";
 import { Actions } from "../../libs/enums";
 import SendIcon from "@mui/icons-material/Send";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const style = {
   position: "absolute" as "absolute",
@@ -24,6 +25,8 @@ type Props = {
   setOpenAuth: (openAuth: boolean) => void;
   dispatch: any;
   id: number | null;
+  limit: number;
+  offset: number;
 };
 
 export default function BasicModal({
@@ -31,11 +34,14 @@ export default function BasicModal({
   setOpenAuth,
   dispatch,
   id,
+  limit,
+  offset,
 }: Props) {
   const [auth, setAuth] = React.useState(true);
   // const [state, dispatch] = React.useReducer(reducer, initialState);
   const { classes, cx } = useStyles();
   const [text, setText] = React.useState<string>("");
+  const [captcha, setCaptcha] = React.useState<string>("");
 
   console.log(id);
   const handleClose = () => {
@@ -56,7 +62,9 @@ export default function BasicModal({
 
     const response = await fetch(
       process.env.REACT_APP_API_URL +
-        `/api/comments/?text=${text}${id ? `&parent_id=${id}` : ""}`,
+        `/api/comments/?text=${text}${
+          id ? `&parent_id=${id}` : ""
+        }&limit=${limit}&offset=${offset}`,
       {
         method: "POST",
         headers: {
@@ -86,8 +94,11 @@ export default function BasicModal({
     handleClose();
 
     setText("");
+    setCaptcha("");
   };
-
+  function onChange(value: any) {
+    setCaptcha(value);
+  }
   return (
     <div>
       <Modal
@@ -125,11 +136,16 @@ export default function BasicModal({
               multiline
               maxRows={4}
             />
+            <ReCAPTCHA
+              sitekey={process.env.REACT_APP_CAPTCHA as string}
+              onChange={onChange}
+            />
             <Button
               color="success"
               size="large"
               type="submit"
               endIcon={<SendIcon />}
+              disabled={!captcha}
             />
           </div>
         </Box>

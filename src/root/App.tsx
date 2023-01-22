@@ -128,6 +128,8 @@ const App = () => {
             openAuth={open}
             setOpenAuth={setOpen}
             dispatch={dispatch}
+            limit={rowsPerPage}
+            offset={page * rowsPerPage}
             // temp={temp}
           />
           {state.name && (

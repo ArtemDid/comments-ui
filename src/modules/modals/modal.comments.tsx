@@ -2,8 +2,6 @@ import * as React from "react";
 import { Modal, Box, Typography, TextField, Button } from "@mui/material";
 import { useStyles } from "./styles";
 import toast from "react-hot-toast";
-import { initialState } from "../../libs/constants";
-import { InitialState, Action } from "../../libs/types";
 import { Actions } from "../../libs/enums";
 import SendIcon from "@mui/icons-material/Send";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -15,7 +13,6 @@ const style = {
   transform: "translate(-50%, -50%)",
   width: 400,
   bgcolor: "background.paper",
-  // border: "2px solid #000",
   boxShadow: 14,
   p: 4,
   "& .MuiTextField-root": { m: 1, width: "25ch" },
@@ -37,19 +34,12 @@ export default function BasicModal({
   limit,
   offset,
 }: Props) {
-  const [auth, setAuth] = React.useState(true);
-  // const [state, dispatch] = React.useReducer(reducer, initialState);
   const { classes, cx } = useStyles();
   const [text, setText] = React.useState<string>("");
   const [captcha, setCaptcha] = React.useState<string>("");
 
-  console.log(id);
   const handleClose = () => {
     setOpenAuth(false);
-  };
-
-  const handleClick = () => {
-    setAuth(!auth);
   };
 
   const handleChange = (event: any) => {
@@ -58,7 +48,6 @@ export default function BasicModal({
 
   const handleSubmit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
-    console.log(text);
 
     const response = await fetch(
       process.env.REACT_APP_API_URL +
@@ -75,22 +64,16 @@ export default function BasicModal({
     );
     const data = await response.json();
 
-    // if (!data.status || data.status !== 200) {
-    //   toast.error(data.message);
-    //   return;
-    // }
+    if (data.message) {
+      toast.error(data.message);
+      return;
+    }
 
     dispatch({
       type: Actions.setComments,
       payload: data,
     });
 
-    // localStorage.setItem("token", data.token);
-
-    // toast.success("Success!");
-    // temp();
-
-    console.log(data);
     handleClose();
 
     setText("");
@@ -113,10 +96,6 @@ export default function BasicModal({
           autoComplete="off"
           onSubmit={handleSubmit}
         >
-          {/* <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-          </Typography> */}
-
           <div className={cx(classes.modalContent)}>
             <Typography
               id="modal-modal-title"

@@ -2,8 +2,6 @@ import * as React from "react";
 import { Modal, Box, Typography, TextField, Button } from "@mui/material";
 import { useStyles } from "./styles";
 import toast from "react-hot-toast";
-import { initialState } from "../../libs/constants";
-import { InitialState, Action } from "../../libs/types";
 import { Actions } from "../../libs/enums";
 
 const style = {
@@ -13,7 +11,6 @@ const style = {
   transform: "translate(-50%, -50%)",
   width: 400,
   bgcolor: "background.paper",
-  // border: "2px solid #000",
   boxShadow: 14,
   p: 4,
   "& .MuiTextField-root": { m: 1, width: "25ch" },
@@ -22,17 +19,16 @@ type Props = {
   openAuth: boolean;
   setOpenAuth: (openAuth: boolean) => void;
   dispatch: any;
-  temp: any;
+  getComments: any;
 };
 
 export default function BasicModal({
   openAuth,
   setOpenAuth,
   dispatch,
-  temp,
+  getComments,
 }: Props) {
   const [auth, setAuth] = React.useState(true);
-  // const [state, dispatch] = React.useReducer(reducer, initialState);
   const { classes, cx } = useStyles();
   const [inputs, setInputs] = React.useState<{
     user_name: string;
@@ -43,6 +39,15 @@ export default function BasicModal({
     email: "",
     home_page: "",
   });
+  const [selectedImage, setSelectedImage] = React.useState<any>(null);
+  const [imageUrl, setImageUrl] = React.useState(null);
+
+  React.useEffect(() => {
+    if (selectedImage) {
+      setImageUrl(selectedImage);
+    }
+  }, [selectedImage]);
+
   const handleClose = () => {
     setOpenAuth(false);
   };
@@ -59,43 +64,55 @@ export default function BasicModal({
 
   const handleSubmit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
-    console.log(inputs);
-    if (!inputs.home_page) {
-      delete inputs.home_page;
-    }
 
-    const response = await fetch(
-      process.env.REACT_APP_API_URL +
-        `/api/users/${auth ? "login" : "registration"}?` +
-        new URLSearchParams(inputs),
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const reader = new FileReader();
+
+    var uint8Array = null;
+
+    reader.readAsArrayBuffer(selectedImage || new Blob([]));
+
+    reader.onloadend = async () => {
+      //@ts-ignore
+      uint8Array = new Uint8Array(reader.result);
+
+      if (!inputs.home_page) {
+        delete inputs.home_page;
       }
-    );
-    const data = await response.json();
 
-    if (!data.status || data.status !== 200) {
-      toast.error(data.message);
-      return;
-    }
+      const response = await fetch(
+        process.env.REACT_APP_API_URL +
+          `/api/users/${auth ? "login" : "registration"}?` +
+          new URLSearchParams(inputs),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ mas: [...uint8Array] }),
+        }
+      );
+      const data = await response.json();
 
-    dispatch({
-      type: Actions.setItems,
-      payload: data,
-    });
+      if (!data.status || data.status !== 200) {
+        toast.error(data.message);
+        return;
+      }
 
-    localStorage.setItem("token", data.token);
+      dispatch({
+        type: Actions.setItems,
+        payload: data,
+      });
 
-    toast.success("Success!");
-    temp();
+      localStorage.setItem("token", data.token);
 
-    console.log(data);
-    handleClose();
+      toast.success("Success!");
+      getComments();
 
-    setInputs({ user_name: "", email: "", home_page: "" });
+      console.log(data);
+      handleClose();
+
+      setInputs({ user_name: "", email: "", home_page: "" });
+    };
   };
 
   return (
@@ -112,10 +129,6 @@ export default function BasicModal({
           autoComplete="off"
           onSubmit={handleSubmit}
         >
-          {/* <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-          </Typography> */}
-
           <div className={cx(classes.modalContent)}>
             <Typography
               id="modal-modal-title"
@@ -142,15 +155,32 @@ export default function BasicModal({
               value={inputs.email}
             />
             {!auth && (
-              <TextField
-                id="outlined-multiline-flexible"
-                label="Home page"
-                multiline
-                maxRows={4}
-                onChange={handleChange}
-                name="home_page"
-                value={inputs.home_page}
-              />
+              <>
+                <TextField
+                  id="outlined-multiline-flexible"
+                  label="Home page"
+                  multiline
+                  maxRows={4}
+                  onChange={handleChange}
+                  name="home_page"
+                  value={inputs.home_page}
+                />
+                <input
+                  accept="image/*"
+                  type="file"
+                  id="select-image"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    //@ts-ignore
+                    setSelectedImage(e.target?.files[0]);
+                  }}
+                />
+                <label htmlFor="select-image">
+                  <Button variant="contained" color="primary" component="span">
+                    Upload Image
+                  </Button>
+                </label>
+              </>
             )}
             <Button color="success" size="large" type="submit">
               Send

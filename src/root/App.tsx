@@ -1,19 +1,11 @@
-import React, { useLayoutEffect, useReducer } from "react";
+import React, { useEffect, useLayoutEffect, useReducer, useState } from "react";
 import Header from "../layout/Header";
 import { initialState } from "../libs/constants";
 import { Actions } from "../libs/enums";
 import { Action, InitialState } from "../libs/types";
-import toast from "react-hot-toast";
 import CommentsContainer from "../modules/comments/CommentsContainer";
-import { Button, TablePagination } from "@mui/material";
+import { Box, Button, TablePagination } from "@mui/material";
 import CommentModal from "../modules/modals/modal.comments";
-
-// import { initialState } from "../libs/constants";
-// import { Actions } from "../libs/enums";
-// import { parseCurrencies } from "../libs/helper";
-// import { Action, InitialState } from "../libs/types";
-// import { CurrencyConverter } from "../pages/main/CurrencyConverter";
-// import { useStyles } from "./styles";
 
 const reducer = (state: InitialState, action: Action) => {
   switch (action.type) {
@@ -48,10 +40,10 @@ const reducer = (state: InitialState, action: Action) => {
 
 const App = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  const [open, setOpen] = React.useState(false);
-  const [id, setId] = React.useState(null);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [open, setOpen] = React.useState<boolean>(false);
+  const [id, setId] = React.useState<number | null>(null);
+  const [page, setPage] = React.useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState<number>(10);
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
@@ -59,7 +51,7 @@ const App = () => {
     setPage(newPage);
   };
 
-  const temp = () => {
+  const getComments = () => {
     if (localStorage.getItem("token"))
       fetch(
         process.env.REACT_APP_API_URL +
@@ -93,8 +85,7 @@ const App = () => {
   };
 
   useLayoutEffect(() => {
-    // if (state.comments) return;
-    temp();
+    getComments();
   }, [rowsPerPage, page]);
 
   const handleChangeRowsPerPage = (
@@ -107,13 +98,10 @@ const App = () => {
     setOpen(true);
     setId(null);
   };
-  const handleClose = () => setOpen(false);
-
-  console.log(state.comments);
 
   return (
     <div>
-      <Header dispatch={dispatch} state={state} temp={temp} />
+      <Header dispatch={dispatch} state={state} getComments={getComments} />
       <h1>Comments</h1>
       {state.isUploaded && (
         <>
@@ -130,7 +118,6 @@ const App = () => {
             dispatch={dispatch}
             limit={rowsPerPage}
             offset={page * rowsPerPage}
-            // temp={temp}
           />
           {state.name && (
             <TablePagination

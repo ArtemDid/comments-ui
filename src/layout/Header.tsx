@@ -1,6 +1,4 @@
 import React from "react";
-// import { getCurrencyPrice } from "../libs/helper";
-// import { Currencies } from "../libs/types";
 import { useStyles } from "./styles";
 import { Avatar, Button, Fade, Paper, Typography } from "@mui/material";
 import { useState } from "react";
@@ -11,10 +9,10 @@ import { Actions } from "../libs/enums";
 interface Props {
   dispatch: any;
   state: any;
-  temp: any;
+  getComments: any;
 }
 
-const Header = ({ dispatch, state, temp }: Props) => {
+const Header = ({ dispatch, state, getComments }: Props) => {
   const { classes, cx } = useStyles();
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null
@@ -32,7 +30,6 @@ const Header = ({ dispatch, state, temp }: Props) => {
     });
     localStorage.removeItem("token");
   };
-  // const [name, setName] = useState("Artem");
 
   const handleClick =
     (newPlacement: PopperPlacementType) =>
@@ -70,7 +67,7 @@ const Header = ({ dispatch, state, temp }: Props) => {
         openAuth={openAuth}
         setOpenAuth={setOpenAuth}
         dispatch={dispatch}
-        temp={temp}
+        getComments={getComments}
       />
     </div>
   );
